@@ -23,6 +23,13 @@ class Connector {
       CiphertextBlob: Buffer.from(dataKey, 'base64'),
     }).promise();
   }
+
+  encryptDataKey(plainText) {
+    return this.kms.encrypt({
+      KeyId: this.masterKeyAlias,
+      Plaintext: plainText,
+    }).promise();
+  }
 }
 
 export default Connector;
