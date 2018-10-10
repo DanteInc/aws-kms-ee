@@ -6,6 +6,7 @@ import Connector from '../../src/connector';
 import { GEN_DK_RESPONSE, DECRYPT_DK_RESPONSE } from '../fixtures';
 
 const AWS = require('aws-sdk-mock');
+
 AWS.Promise = Promise;
 
 describe('connector.js', () => {
