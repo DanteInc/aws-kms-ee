@@ -8,6 +8,10 @@ import Connector from '../../src/connector';
 import { GEN_DK_RESPONSE, DECRYPT_DK_RESPONSE } from '../fixtures';
 
 describe('index.js', () => {
+  beforeEach(() => {
+    process.env.AWS_REGION = process.env.AWS_REGION || 'us-east-1';
+  });
+
   afterEach(() => {
     sinon.restore();
   });
