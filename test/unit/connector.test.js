@@ -33,10 +33,10 @@ describe('connector.js', () => {
     AWS.mock('KMS', 'decrypt', spy);
 
     const response = await new Connector('alias/aws-kms-ee')
-      .decryptDataKey(Buffer.from(GEN_DK_RESPONSE.CiphertextBlob.data).toString('base64'));
+      .decryptDataKey(GEN_DK_RESPONSE.CiphertextBlob.toString('base64'));
 
     expect(spy).to.have.been.calledWith({
-      CiphertextBlob: Buffer.from(GEN_DK_RESPONSE.CiphertextBlob.data),
+      CiphertextBlob: GEN_DK_RESPONSE.CiphertextBlob,
     });
     expect(response).to.deep.equal(DECRYPT_DK_RESPONSE);
   });
@@ -46,11 +46,11 @@ describe('connector.js', () => {
     AWS.mock('KMS', 'encrypt', spy);
 
     const response = await new Connector('alias/aws-kms-ee')
-      .encryptDataKey(Buffer.from(GEN_DK_RESPONSE.Plaintext.data));
+      .encryptDataKey(GEN_DK_RESPONSE.Plaintext);
 
     expect(spy).to.have.been.calledWith({
       KeyId: 'alias/aws-kms-ee',
-      Plaintext: Buffer.from(GEN_DK_RESPONSE.Plaintext.data),
+      Plaintext: GEN_DK_RESPONSE.Plaintext,
     });
     expect(response).to.deep.equal(ENCRYPT_DK_RESPONSE);
   });

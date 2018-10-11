@@ -10,12 +10,12 @@ const VALUE = 'fred';
 describe('utils.js', () => {
   it('should encrypt and decrypt', () => {
     const encrypted = encryptValue(VALUE, {
-      Plaintext: Buffer.from(GEN_DK_RESPONSE.Plaintext.data),
+      Plaintext: GEN_DK_RESPONSE.Plaintext,
     });
     // console.log(encrypted);
 
     const decrypted = decryptValue(encrypted, {
-      Plaintext: Buffer.from(DECRYPT_DK_RESPONSE.Plaintext.data),
+      Plaintext: DECRYPT_DK_RESPONSE.Plaintext,
     });
     expect(decrypted).to.equal(VALUE);
   });
