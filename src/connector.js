@@ -3,11 +3,12 @@ import { KMS } from 'aws-sdk';
 import { debug } from './utils';
 
 class Connector {
-  constructor(masterKeyAlias) {
+  constructor(masterKeyAlias, region = process.env.AWS_REGION) {
     this.masterKeyAlias = masterKeyAlias;
     this.kms = new KMS({
       httpOptions: { timeout: 1000 },
       logger: { log: /* istanbul ignore next */ msg => debug(msg) },
+      region,
     });
   }
 

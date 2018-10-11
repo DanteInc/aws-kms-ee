@@ -45,7 +45,7 @@ describe('connector.js', () => {
     const spy = sinon.spy((params, cb) => cb(null, ENCRYPT_DK_RESPONSE));
     AWS.mock('KMS', 'encrypt', spy);
 
-    const response = await new Connector('alias/aws-kms-ee')
+    const response = await new Connector('alias/aws-kms-ee', 'us-west-2')
       .encryptDataKey(GEN_DK_RESPONSE.Plaintext);
 
     expect(spy).to.have.been.calledWith({
