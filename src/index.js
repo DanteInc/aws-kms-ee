@@ -1,38 +1,79 @@
-import * as _ from 'lodash';
+import { cloneDeepWith, merge, compact, first } from 'lodash';
 
 import Connector from './connector';
-import { encryptValue, decryptValue } from './utils';
+import { encryptValue, decryptValue, logError } from './utils';
 
-export const encryptObject = (object, metadata) => new Connector(metadata.masterKeyAlias)
+export const encryptObject = (object, {
+  masterKeyAlias, fields, dataKeys, regions,
+}) => new Connector(masterKeyAlias)
   .generateDataKey()
+  .then(encryptDataKeyPerRegion({ masterKeyAlias, dataKeys, regions }))
   .then(dataKey =>
     ({
-      encrypted: _.cloneDeepWith(object, (value, key) => {
-        if (metadata.fields.includes(key)) {
+      encrypted: cloneDeepWith(object, (value, key) => {
+        if (fields.includes(key)) {
           return encryptValue(value, dataKey);
         } else {
           return undefined;
         }
       }),
       metadata: {
-        dataKey: {
-          [process.env.AWS_REGION]: dataKey.CiphertextBlob.toString('base64'),
-        },
-        ...metadata,
+        dataKeys: dataKey.dataKeys,
+        masterKeyAlias,
+        fields,
       },
     }));
 
-export const decryptObject = (object, metadata) => new Connector(metadata.masterKeyAlias)
-  .decryptDataKey(metadata.dataKey[process.env.AWS_REGION])
-  .then(dataKey =>
-    ({
-      object: _.cloneDeepWith(object, (value, key) => {
-        if (metadata.fields.includes(key)) {
-          return decryptValue(value, dataKey);
-        } else {
-          return undefined;
-        }
-      }),
-      metadata,
+export const decryptObject = (object, metadata) =>
+  decryptDataKey(metadata)
+    .then(dataKey =>
+      ({
+        object: cloneDeepWith(object, (value, key) => {
+          if (metadata.fields.includes(key)) {
+            return decryptValue(value, dataKey);
+          } else {
+            return undefined;
+          }
+        }),
+        metadata,
+      }));
+
+const encryptDataKeyPerRegion = metadata => ({ Plaintext, CiphertextBlob }) =>
+  Promise.all(otherRegions(metadata)
+    .map(region => new Connector(metadata.masterKeyAlias, region)
+      .encryptDataKey(Plaintext)
+      .then(resp => ({
+        [region]: resp.CiphertextBlob.toString('base64'),
+      }))
+      .catch((err) => {
+        logError(err, region);
+        return {
+          [region]: undefined,
+        };
+      }))
+    .concat({
+      [process.env.AWS_REGION]: CiphertextBlob.toString('base64'),
+    }))
+    .then(dataKeys => ({
+      dataKeys: merge({}, ...dataKeys),
+      Plaintext,
     }));
 
+const decryptDataKey = metadata => new Connector(metadata.masterKeyAlias)
+  .decryptDataKey(metadata.dataKeys[process.env.AWS_REGION])
+  .catch((e1) => {
+    console.error('could not decrypt data key from local region: %s, %s', process.env.AWS_REGION, e1);
+    return Promise.all(otherRegions(metadata)
+      .map(region => new Connector(metadata.masterKeyAlias, region)
+        .decryptDataKey(metadata.dataKeys[region])
+        .catch((e2) => {
+          console.error('could not decrypt data key from remote region: %s, %s', region, e1);
+          return undefined;
+        })))
+      .then(dataKey => (first(compact(dataKey)) ||
+        Promise.reject(new Error('could not decrypt data key from any region'))));
+  });
+
+const otherRegions = metadata =>
+  (metadata.regions || (metadata.dataKeys && Object.keys(metadata.dataKeys)) || [])
+    .filter(region => region !== process.env.AWS_REGION);

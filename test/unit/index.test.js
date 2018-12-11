@@ -5,10 +5,11 @@ import * as sinon from 'sinon';
 import { encryptObject, decryptObject } from '../../src';
 import Connector from '../../src/connector';
 
-import { GEN_DK_RESPONSE, DECRYPT_DK_RESPONSE } from '../fixtures';
+import { GEN_DK_RESPONSE, DECRYPT_DK_RESPONSE, ENCRYPT_DK_RESPONSE } from '../fixtures';
 
 describe('index.js', () => {
   beforeEach(() => {
+    process.env.ACCOUNT_NAME = process.env.ACCOUNT_NAME || 'dev';
     process.env.AWS_REGION = process.env.AWS_REGION || 'us-east-1';
   });
 
@@ -60,6 +61,9 @@ describe('index.js', () => {
           'f7', // 'f6.f7'
           'f10', // 'f6.f9.f10'
         ],
+        dataKeys: {
+          'us-east-1': undefined,
+        },
       },
     );
 
@@ -108,6 +112,83 @@ describe('index.js', () => {
     const decryptOutput = await decryptObject(encryptOutput.encrypted, encryptOutput.metadata);
     // console.log(JSON.stringify(decryptOutput, null, 2));
     expect(decryptOutput.object).to.deep.equal(DOMAIN_OBJECT);
+  });
+
+  it('should encrypt and decrypt for multiple regions', async () => {
+    sinon.stub(Connector.prototype, 'generateDataKey')
+      .returns(Promise.resolve(GEN_DK_RESPONSE));
+    sinon.stub(Connector.prototype, 'decryptDataKey')
+      .returns(Promise.resolve(DECRYPT_DK_RESPONSE));
+    sinon.stub(Connector.prototype, 'encryptDataKey')
+      .returns(Promise.resolve(ENCRYPT_DK_RESPONSE));
+
+    const encryptOutput = await encryptObject(
+      DOMAIN_OBJECT,
+      {
+        masterKeyAlias: 'alias/aws-kms-ee',
+        regions: ['us-east-1', 'us-west-2'],
+        fields: ['f1'],
+      },
+    );
+
+    // console.log(JSON.stringify(encryptOutput, null, 2));
+    expect(encryptOutput.encrypted).to.not.deep.equal(DOMAIN_OBJECT);
+
+    const decryptOutput = await decryptObject(encryptOutput.encrypted, encryptOutput.metadata);
+    // console.log(JSON.stringify(decryptOutput, null, 2));
+    expect(decryptOutput.object).to.deep.equal(DOMAIN_OBJECT);
+    expect(decryptOutput.metadata.fields).to.exist;
+  });
+
+  it('should handle other region unable to encrypt data key', async () => {
+    sinon.stub(Connector.prototype, 'generateDataKey')
+      .returns(Promise.resolve(GEN_DK_RESPONSE));
+    sinon.stub(Connector.prototype, 'decryptDataKey')
+      .returns(Promise.resolve(DECRYPT_DK_RESPONSE));
+    sinon.stub(Connector.prototype, 'encryptDataKey')
+      .returns(Promise.reject(new Error('mock cannot encrypt')));
+
+    sinon.stub(console, 'error');
+
+    const encryptOutput = await encryptObject(
+      DOMAIN_OBJECT,
+      {
+        masterKeyAlias: 'alias/aws-kms-ee',
+        regions: ['us-east-1', 'us-west-2'],
+        fields: ['f1'],
+      },
+    );
+
+    // console.log(JSON.stringify(encryptOutput, null, 2));
+    expect(encryptOutput.metadata.dataKeys['us-east-1']).to.be.not.null;
+    expect(encryptOutput.metadata.dataKeys['us-west-2']).to.be.undefined;
+  });
+
+  it('should handle unable to decrypt data key', async () => {
+    sinon.stub(Connector.prototype, 'generateDataKey')
+      .returns(Promise.resolve(GEN_DK_RESPONSE));
+    sinon.stub(Connector.prototype, 'decryptDataKey')
+      .returns(Promise.reject(new Error('mock cannot decrypt')));
+    sinon.stub(Connector.prototype, 'encryptDataKey')
+      .returns(Promise.resolve(ENCRYPT_DK_RESPONSE));
+
+    sinon.stub(console, 'error');
+
+    const encryptOutput = await encryptObject(
+      DOMAIN_OBJECT,
+      {
+        masterKeyAlias: 'alias/aws-kms-ee',
+        regions: ['us-east-1', 'us-west-2'],
+        fields: ['f1'],
+      },
+    );
+
+    try {
+      await decryptObject(encryptOutput.encrypted, encryptOutput.metadata);
+      expect.fail('expected error');
+    } catch (e) {
+      console.error('EXPECTED: ', e.message);
+    }
   });
 });
 
