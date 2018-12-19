@@ -46,7 +46,7 @@ const encryptDataKeyPerRegion = metadata => ({ Plaintext, CiphertextBlob }) =>
         [region]: resp.CiphertextBlob.toString('base64'),
       }))
       .catch((err) => {
-        logError(err, region);
+        logError(err, 1, region);
         return {
           [region]: undefined,
         };
@@ -62,12 +62,12 @@ const encryptDataKeyPerRegion = metadata => ({ Plaintext, CiphertextBlob }) =>
 const decryptDataKey = metadata => new Connector(metadata.masterKeyAlias)
   .decryptDataKey(metadata.dataKeys[process.env.AWS_REGION])
   .catch((e1) => {
-    console.error('could not decrypt data key from local region: %s, %s', process.env.AWS_REGION, e1);
+    logError(e1, 0, process.env.AWS_REGION);
     return Promise.all(otherRegions(metadata)
       .map(region => new Connector(metadata.masterKeyAlias, region)
         .decryptDataKey(metadata.dataKeys[region])
         .catch((e2) => {
-          console.error('could not decrypt data key from remote region: %s, %s', region, e1);
+          logError(e2, 0, region);
           return undefined;
         })))
       .then(dataKey => (first(compact(dataKey)) ||

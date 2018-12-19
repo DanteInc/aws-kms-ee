@@ -5,7 +5,7 @@ import * as sinon from 'sinon';
 import { encryptObject, decryptObject } from '../../src';
 import Connector from '../../src/connector';
 
-import { GEN_DK_RESPONSE, DECRYPT_DK_RESPONSE, ENCRYPT_DK_RESPONSE } from '../fixtures';
+import { DOMAIN_OBJECT, GEN_DK_RESPONSE, DECRYPT_DK_RESPONSE, ENCRYPT_DK_RESPONSE } from '../fixtures';
 
 describe('index.js', () => {
   beforeEach(() => {
@@ -138,6 +138,10 @@ describe('index.js', () => {
     // console.log(JSON.stringify(decryptOutput, null, 2));
     expect(decryptOutput.object).to.deep.equal(DOMAIN_OBJECT);
     expect(decryptOutput.metadata.fields).to.exist;
+    expect(decryptOutput.metadata.dataKeys['us-east-1'])
+      .to.equal(GEN_DK_RESPONSE.CiphertextBlob.toString('base64'));
+    expect(decryptOutput.metadata.dataKeys['us-west-2'])
+      .to.equal(ENCRYPT_DK_RESPONSE.CiphertextBlob.toString('base64'));
   });
 
   it('should handle other region unable to encrypt data key', async () => {
@@ -148,7 +152,7 @@ describe('index.js', () => {
     sinon.stub(Connector.prototype, 'encryptDataKey')
       .returns(Promise.reject(new Error('mock cannot encrypt')));
 
-    sinon.stub(console, 'error');
+    const stub = sinon.stub(console, 'error');
 
     const encryptOutput = await encryptObject(
       DOMAIN_OBJECT,
@@ -160,11 +164,13 @@ describe('index.js', () => {
     );
 
     // console.log(JSON.stringify(encryptOutput, null, 2));
-    expect(encryptOutput.metadata.dataKeys['us-east-1']).to.be.not.null;
+    expect(encryptOutput.metadata.dataKeys['us-east-1'])
+      .to.equal(GEN_DK_RESPONSE.CiphertextBlob.toString('base64'));
     expect(encryptOutput.metadata.dataKeys['us-west-2']).to.be.undefined;
+    expect(stub).to.have.been.calledOnce;
   });
 
-  it('should handle unable to decrypt data key', async () => {
+  it('should raise error when unable to decrypt data key for any region', async () => {
     sinon.stub(Connector.prototype, 'generateDataKey')
       .returns(Promise.resolve(GEN_DK_RESPONSE));
     sinon.stub(Connector.prototype, 'decryptDataKey')
@@ -172,7 +178,7 @@ describe('index.js', () => {
     sinon.stub(Connector.prototype, 'encryptDataKey')
       .returns(Promise.resolve(ENCRYPT_DK_RESPONSE));
 
-    sinon.stub(console, 'error');
+    const stub = sinon.stub(console, 'error');
 
     const encryptOutput = await encryptObject(
       DOMAIN_OBJECT,
@@ -187,37 +193,8 @@ describe('index.js', () => {
       await decryptObject(encryptOutput.encrypted, encryptOutput.metadata);
       expect.fail('expected error');
     } catch (e) {
+      expect(stub).to.have.been.calledTwice;
       console.error('EXPECTED: ', e.message);
     }
   });
 });
-
-const DOMAIN_OBJECT = {
-  f1: 'v1', // simple field
-  f2: 'v2',
-  f3: { // embedded object
-    f4: 'v4',
-    f5: 'v5',
-  },
-  f6: [ // collection of objects
-    {
-      f7: 'v7',
-      f8: 'v8',
-      f9: {
-        f10: 'v10',
-        f11: 'v11',
-      },
-      f12: [ // nth level
-        {
-          f13: 'v13',
-          f14: 'v14',
-          f15: {
-            f16: 'v16',
-            f17: 'v17',
-            f1: 'v18',
-          },
-        },
-      ],
-    },
-  ],
-};

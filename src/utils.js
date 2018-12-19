@@ -5,9 +5,9 @@ const CryptoJS = require('crypto-js');
 export const encryptValue = (value, dek) => CryptoJS.AES.encrypt(value, dek.Plaintext.toString()).toString();
 export const decryptValue = (value, dek) => CryptoJS.AES.decrypt(value, dek.Plaintext.toString()).toString(CryptoJS.enc.Utf8);
 
-export const logError = (err, region) => {
+export const logError = (err, forEncrypt, region) => {
   console.error(JSON.stringify({
-    message: `could not encrypt data key for remote region: ${region}`,
+    message: `could not ${forEncrypt ? 'encrypt' : 'decrypt'} data key for region: ${region}`,
     errorMessage: err.message,
     errorType: err.name,
     stackTrace: err.stack,
