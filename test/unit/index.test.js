@@ -107,11 +107,12 @@ describe('index.js', () => {
     expect(encryptOutput.encrypted.f6[0].f12[0].f14).to.equal('v14');
     expect(encryptOutput.encrypted.f6[0].f12[0].f15.f16).to.not.equal('v16');
     expect(encryptOutput.encrypted.f6[0].f12[0].f15.f17).to.equal('v17');
-    expect(encryptOutput.encrypted.f6[0].f12[0].f15.f1).to.not.equal('v18');
+    expect(encryptOutput.encrypted.f6[0].f12[0].f15.f1).to.not.equal(18);
 
     const decryptOutput = await decryptObject(encryptOutput.encrypted, encryptOutput.metadata);
     // console.log(JSON.stringify(decryptOutput, null, 2));
     expect(decryptOutput.object).to.deep.equal(DOMAIN_OBJECT);
+    expect(decryptOutput.object.f6[0].f12[0].f15.f1).to.equal(18);
   });
 
   it('should encrypt and decrypt for multiple regions', async () => {

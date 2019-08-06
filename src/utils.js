@@ -2,8 +2,11 @@ export const debug = require('debug')('kms');
 
 const CryptoJS = require('crypto-js');
 
-export const encryptValue = (value, dek) => CryptoJS.AES.encrypt(value, dek.Plaintext.toString()).toString();
-export const decryptValue = (value, dek) => CryptoJS.AES.decrypt(value, dek.Plaintext.toString()).toString(CryptoJS.enc.Utf8);
+const stringify = value => (value ? JSON.stringify(value) : /* istanbul ignore next */ value);
+const parse = value => (value ? JSON.parse(value) : /* istanbul ignore next */ value);
+
+export const encryptValue = (value, dek) => CryptoJS.AES.encrypt(stringify(value), dek.Plaintext.toString()).toString();
+export const decryptValue = (value, dek) => parse(CryptoJS.AES.decrypt(value, dek.Plaintext.toString()).toString(CryptoJS.enc.Utf8));
 
 export const logError = (err, forEncrypt, region) => {
   console.error(JSON.stringify({

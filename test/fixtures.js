@@ -20,7 +20,7 @@ export const DOMAIN_OBJECT = {
           f15: {
             f16: 'v16',
             f17: 'v17',
-            f1: 'v18',
+            f1: 18,
           },
         },
       ],
