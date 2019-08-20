@@ -17,8 +17,8 @@ const parse = (value) => {
   }
 };
 
-export const encryptValue = (value, dek) => CryptoJS.AES.encrypt(stringify(value), dek.Plaintext.toString()).toString();
-export const decryptValue = (value, dek) => parse(CryptoJS.AES.decrypt(value, dek.Plaintext.toString()).toString(CryptoJS.enc.Utf8));
+export const encryptValue = (value, dek) => (!value ? /* istanbul ignore next */ value : CryptoJS.AES.encrypt(stringify(value), dek.Plaintext.toString()).toString());
+export const decryptValue = (value, dek) => (!value ? /* istanbul ignore next */ value : parse(CryptoJS.AES.decrypt(value, dek.Plaintext.toString()).toString(CryptoJS.enc.Utf8)));
 
 export const logError = (err, forEncrypt, region) => {
   console.error(JSON.stringify({
