@@ -12,7 +12,7 @@ export const encryptObject = (object, {
     ({
       encrypted: cloneDeepWith(object, (value, key) => {
         if (fields.includes(key)) {
-          return encryptValue(value, dataKey);
+          return encryptValue(key, value, dataKey);
         } else {
           return undefined;
         }
@@ -30,7 +30,7 @@ export const decryptObject = (object, metadata) =>
       ({
         object: cloneDeepWith(object, (value, key) => {
           if (metadata.fields.includes(key)) {
-            return decryptValue(value, dataKey);
+            return decryptValue(key, value, dataKey);
           } else {
             return undefined;
           }

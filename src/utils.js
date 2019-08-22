@@ -17,8 +17,35 @@ const parse = (value) => {
   }
 };
 
-export const encryptValue = (value, dek) => (value === null ? /* istanbul ignore next */ value : CryptoJS.AES.encrypt(stringify(value), dek.Plaintext.toString()).toString());
-export const decryptValue = (value, dek) => (value === null ? /* istanbul ignore next */ value : parse(CryptoJS.AES.decrypt(value, dek.Plaintext.toString()).toString(CryptoJS.enc.Utf8)));
+export const encryptValue = (key, value, dek) => {
+  /* istanbul ignore if */
+  if (value === null) {
+    return value;
+  } else {
+    let encryptedValue;
+    try {
+      encryptedValue = CryptoJS.AES.encrypt(stringify(value), dek.Plaintext.toString());
+      return encryptedValue.toString();
+    } catch (err) /* istanbul ignore next */ {
+      throw new Error(`${err.message}, Field: ${key}, Value: ${value}, Encrypted Value: ${encryptedValue}`);
+    }
+  }
+};
+
+export const decryptValue = (key, value, dek) => {
+  /* istanbul ignore if */
+  if (value === null) {
+    return value;
+  } else {
+    let decryptedValue;
+    try {
+      decryptedValue = CryptoJS.AES.decrypt(value, dek.Plaintext.toString());
+      return parse(decryptedValue.toString(CryptoJS.enc.Utf8));
+    } catch (err) /* istanbul ignore next */ {
+      throw new Error(`${err.message}, Field: ${key}, Value: ${value}, Decrypted Value: ${decryptedValue}`);
+    }
+  }
+};
 
 export const logError = (err, forEncrypt, region) => {
   console.error(JSON.stringify({
