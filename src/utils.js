@@ -2,7 +2,7 @@ export const debug = require('debug')('kms');
 
 const CryptoJS = require('crypto-js');
 
-const stringify = value => (value ? JSON.stringify(value) : /* istanbul ignore next */ value);
+const stringify = value => (typeof value !== 'string' ? JSON.stringify(value) : /* istanbul ignore next */ value);
 const parse = (value) => {
   /* istanbul ignore else */
   if (value) {
