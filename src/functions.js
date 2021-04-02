@@ -4,7 +4,7 @@ import Connector from './connector';
 import { encryptValue, decryptValue, logError } from './utils';
 
 export const encryptObject = (object, {
-  masterKeyAlias, fields, dataKeys, regions,
+  masterKeyAlias, fields, dataKeys, regions, AES,
 }) => new Connector(masterKeyAlias)
   .generateDataKey()
   .then(encryptDataKeyPerRegion({ masterKeyAlias, dataKeys, regions }))
@@ -12,7 +12,7 @@ export const encryptObject = (object, {
     ({
       encrypted: cloneDeepWith(object, (value, key) => {
         if (fields.includes(key)) {
-          return encryptValue(key, value, dataKey);
+          return encryptValue(key, value, dataKey, AES);
         } else {
           return undefined;
         }
@@ -30,7 +30,7 @@ export const decryptObject = (object, metadata) =>
       ({
         object: cloneDeepWith(object, (value, key) => {
           if (metadata.fields.includes(key)) {
-            return decryptValue(key, value, dataKey);
+            return decryptValue(key, value, dataKey, metadata.AES);
           } else {
             return undefined;
           }
