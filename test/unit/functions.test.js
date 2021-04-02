@@ -2,12 +2,13 @@ import 'mocha';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 
-import { encryptObject, decryptObject } from '../../src';
+import { encryptObject, decryptObject } from '../../src/functions';
 import Connector from '../../src/connector';
 
-import { DOMAIN_OBJECT, GEN_DK_RESPONSE, DECRYPT_DK_RESPONSE, ENCRYPT_DK_RESPONSE } from '../fixtures';
+import { MOCK_GEN_DK_RESPONSE, MOCK_DECRYPT_DK_RESPONSE, MOCK_ENCRYPT_DK_RESPONSE } from '../../src/fixtures';
+import { DOMAIN_OBJECT } from '../fixtures';
 
-describe('index.js', () => {
+describe('functions.js', () => {
   beforeEach(() => {
     process.env.ACCOUNT_NAME = process.env.ACCOUNT_NAME || 'dev';
     process.env.AWS_REGION = process.env.AWS_REGION || 'us-east-1';
@@ -19,9 +20,9 @@ describe('index.js', () => {
 
   it('should encrypt and decrypt (shallow)', async () => {
     sinon.stub(Connector.prototype, 'generateDataKey')
-      .returns(Promise.resolve(GEN_DK_RESPONSE));
+      .resolves(MOCK_GEN_DK_RESPONSE);
     sinon.stub(Connector.prototype, 'decryptDataKey')
-      .returns(Promise.resolve(DECRYPT_DK_RESPONSE));
+      .resolves(MOCK_DECRYPT_DK_RESPONSE);
 
     const encryptOutput = await encryptObject(
       DOMAIN_OBJECT,
@@ -47,9 +48,9 @@ describe('index.js', () => {
 
   it('should encrypt and decrypt (deep)', async () => {
     sinon.stub(Connector.prototype, 'generateDataKey')
-      .returns(Promise.resolve(GEN_DK_RESPONSE));
+      .resolves(MOCK_GEN_DK_RESPONSE);
     sinon.stub(Connector.prototype, 'decryptDataKey')
-      .returns(Promise.resolve(DECRYPT_DK_RESPONSE));
+      .resolves(MOCK_DECRYPT_DK_RESPONSE);
 
     const encryptOutput = await encryptObject(
       DOMAIN_OBJECT,
@@ -84,9 +85,9 @@ describe('index.js', () => {
 
   it('should encrypt and decrypt (deeper)', async () => {
     sinon.stub(Connector.prototype, 'generateDataKey')
-      .returns(Promise.resolve(GEN_DK_RESPONSE));
+      .resolves(MOCK_GEN_DK_RESPONSE);
     sinon.stub(Connector.prototype, 'decryptDataKey')
-      .returns(Promise.resolve(DECRYPT_DK_RESPONSE));
+      .resolves(MOCK_DECRYPT_DK_RESPONSE);
 
     const encryptOutput = await encryptObject(
       DOMAIN_OBJECT,
@@ -117,11 +118,11 @@ describe('index.js', () => {
 
   it('should encrypt and decrypt for multiple regions', async () => {
     sinon.stub(Connector.prototype, 'generateDataKey')
-      .returns(Promise.resolve(GEN_DK_RESPONSE));
+      .resolves(MOCK_GEN_DK_RESPONSE);
     sinon.stub(Connector.prototype, 'decryptDataKey')
-      .returns(Promise.resolve(DECRYPT_DK_RESPONSE));
+      .resolves(MOCK_DECRYPT_DK_RESPONSE);
     sinon.stub(Connector.prototype, 'encryptDataKey')
-      .returns(Promise.resolve(ENCRYPT_DK_RESPONSE));
+      .resolves(MOCK_ENCRYPT_DK_RESPONSE);
 
     const encryptOutput = await encryptObject(
       DOMAIN_OBJECT,
@@ -140,16 +141,16 @@ describe('index.js', () => {
     expect(decryptOutput.object).to.deep.equal(DOMAIN_OBJECT);
     expect(decryptOutput.metadata.fields).to.exist;
     expect(decryptOutput.metadata.dataKeys['us-east-1'])
-      .to.equal(GEN_DK_RESPONSE.CiphertextBlob.toString('base64'));
+      .to.equal(MOCK_GEN_DK_RESPONSE.CiphertextBlob.toString('base64'));
     expect(decryptOutput.metadata.dataKeys['us-west-2'])
-      .to.equal(ENCRYPT_DK_RESPONSE.CiphertextBlob.toString('base64'));
+      .to.equal(MOCK_ENCRYPT_DK_RESPONSE.CiphertextBlob.toString('base64'));
   });
 
   it('should handle other region unable to encrypt data key', async () => {
     sinon.stub(Connector.prototype, 'generateDataKey')
-      .returns(Promise.resolve(GEN_DK_RESPONSE));
+      .resolves(MOCK_GEN_DK_RESPONSE);
     sinon.stub(Connector.prototype, 'decryptDataKey')
-      .returns(Promise.resolve(DECRYPT_DK_RESPONSE));
+      .resolves(MOCK_DECRYPT_DK_RESPONSE);
     sinon.stub(Connector.prototype, 'encryptDataKey')
       .returns(Promise.reject(new Error('mock cannot encrypt')));
 
@@ -166,18 +167,18 @@ describe('index.js', () => {
 
     // console.log(JSON.stringify(encryptOutput, null, 2));
     expect(encryptOutput.metadata.dataKeys['us-east-1'])
-      .to.equal(GEN_DK_RESPONSE.CiphertextBlob.toString('base64'));
+      .to.equal(MOCK_GEN_DK_RESPONSE.CiphertextBlob.toString('base64'));
     expect(encryptOutput.metadata.dataKeys['us-west-2']).to.be.undefined;
     expect(stub).to.have.been.calledOnce;
   });
 
   it('should raise error when unable to decrypt data key for any region', async () => {
     sinon.stub(Connector.prototype, 'generateDataKey')
-      .returns(Promise.resolve(GEN_DK_RESPONSE));
+      .resolves(MOCK_GEN_DK_RESPONSE);
     sinon.stub(Connector.prototype, 'decryptDataKey')
-      .returns(Promise.reject(new Error('mock cannot decrypt')));
+      .rejects(new Error('mock cannot decrypt'));
     sinon.stub(Connector.prototype, 'encryptDataKey')
-      .returns(Promise.resolve(ENCRYPT_DK_RESPONSE));
+      .resolves(MOCK_ENCRYPT_DK_RESPONSE);
 
     const stub = sinon.stub(console, 'error');
 

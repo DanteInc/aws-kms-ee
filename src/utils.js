@@ -1,8 +1,9 @@
+import * as crypto from './crypto';
+
 export const debug = require('debug')('kms');
 
-const CryptoJS = require('crypto-js');
-
 const stringify = value => (typeof value !== 'string' ? JSON.stringify(value) : /* istanbul ignore next */ value);
+
 const parse = (value) => {
   /* istanbul ignore else */
   if (value) {
@@ -17,14 +18,14 @@ const parse = (value) => {
   }
 };
 
-export const encryptValue = (key, value, dek) => {
+export const encryptValue = (key, value, dek, AES = true) => {
   /* istanbul ignore if */
   if (value === null) {
     return value;
   } else {
     let encryptedValue;
     try {
-      encryptedValue = CryptoJS.AES.encrypt(stringify(value), dek.Plaintext.toString());
+      encryptedValue = crypto.encrypt(stringify(value), dek.Plaintext.toString(), AES);
       return encryptedValue.toString();
     } catch (err) /* istanbul ignore next */ {
       throw new Error(`${err.message}, Field: ${key}, Value: ${value}, Encrypted Value: ${encryptedValue}`);
@@ -32,15 +33,15 @@ export const encryptValue = (key, value, dek) => {
   }
 };
 
-export const decryptValue = (key, value, dek) => {
+export const decryptValue = (key, value, dek, AES = true) => {
   /* istanbul ignore if */
   if (value === null) {
     return value;
   } else {
     let decryptedValue;
     try {
-      decryptedValue = CryptoJS.AES.decrypt(value, dek.Plaintext.toString());
-      return parse(decryptedValue.toString(CryptoJS.enc.Utf8));
+      decryptedValue = crypto.decrypt(value, dek.Plaintext.toString(), AES);
+      return parse(decryptedValue);
     } catch (err) /* istanbul ignore next */ {
       throw new Error(`${err.message}, Field: ${key}, Value: ${value}, Decrypted Value: ${decryptedValue}`);
     }
