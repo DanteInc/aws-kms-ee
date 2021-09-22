@@ -1,4 +1,7 @@
-import { cloneDeepWith, merge, compact, first } from 'lodash';
+import cloneDeepWith from 'lodash/cloneDeepWith';
+import merge from 'lodash/merge';
+import compact from 'lodash/compact';
+import first from 'lodash/first';
 
 import Connector from './connector';
 import { encryptValue, decryptValue, logError } from './utils';

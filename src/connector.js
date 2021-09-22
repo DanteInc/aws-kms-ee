@@ -1,13 +1,21 @@
+/* eslint import/no-extraneous-dependencies: ["error", {"devDependencies": true}] */
 import { KMS } from 'aws-sdk';
 import memoizee from 'memoizee';
 
 import { debug } from './utils';
 
 class Connector {
-  constructor(masterKeyAlias, region = process.env.AWS_REGION) {
+  constructor(
+    masterKeyAlias,
+    region = process.env.AWS_REGION,
+    timeout = Number(process.env.KMS_TIMEOUT || process.env.TIMEOUT || 1000),
+    connectTimeout = Number(process.env.KMS_CONNECT_TIMEOUT || process.env.CONNECT_TIMEOUT || 1000),
+    maxAge = Number(process.env.DATA_KEY_MAX_AGE) || 10800000, // 3 hours
+  ) {
+    this.maxAge = maxAge;
     this.masterKeyAlias = masterKeyAlias;
     this.kms = new KMS({
-      httpOptions: { timeout: 1000 },
+      httpOptions: { timeout, connectTimeout },
       logger: { log: /* istanbul ignore next */ msg => debug(msg) },
       region,
     });
@@ -33,7 +41,7 @@ class Connector {
       }).promise(),
     {
       promise: true,
-      maxAge: Number(process.env.DATA_KEY_MAX_AGE) || 1800000, // 30 minutes
+      maxAge: this.maxAge,
     },
   );
 
