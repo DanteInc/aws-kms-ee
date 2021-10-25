@@ -2,16 +2,14 @@ import * as crypto from './crypto';
 
 export const debug = require('debug')('kms');
 
-const stringify = value => (typeof value !== 'string' ? JSON.stringify(value) : /* istanbul ignore next */ value);
-
 const parse = (value) => {
   /* istanbul ignore else */
   if (value) {
-    try {
-      return JSON.parse(value);
-    } catch (e) /* istanbul ignore next */ {
-      // this will handle when the encrypted value was not stringified
+    if (!value.includes('"') && value.split('E').length === 2) {
+      // forwards compatibility for previousy non-stringified strings that look exponential
       return value;
+    } else {
+      return JSON.parse(value);
     }
   } else {
     return value;
@@ -25,7 +23,7 @@ export const encryptValue = (key, value, dek, AES = true) => {
   } else {
     let encryptedValue;
     try {
-      encryptedValue = crypto.encrypt(stringify(value), dek.Plaintext.toString(), AES);
+      encryptedValue = crypto.encrypt(JSON.stringify(value), dek.Plaintext.toString(), AES);
       return encryptedValue.toString();
     } catch (err) /* istanbul ignore next */ {
       throw new Error(`${err.message}, Field: ${key}, Value: ${value}, Encrypted Value: ${encryptedValue}`);
