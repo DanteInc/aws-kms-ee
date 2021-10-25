@@ -33,7 +33,9 @@ describe('utils.js', () => {
   });
   it('should decrypt unstringified string - forwards compatibility', () => {
     const encrypted = crypto.encrypt(VALUE, MOCK_DECRYPT_DK_RESPONSE.Plaintext.toString(), true).toString();
-
+    // simulates the previous code 
+    // const stringify = value => (typeof value !== 'string' ? JSON.stringify(value) : value);
+    
     const decrypted = decryptValue('f1', encrypted, {
       Plaintext: MOCK_DECRYPT_DK_RESPONSE.Plaintext,
     });
