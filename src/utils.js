@@ -5,7 +5,7 @@ export const debug = require('debug')('kms');
 const parse = (value) => {
   /* istanbul ignore else */
   if (value) {
-    if (!value.includes('"') && value.split('E').length === 2) {
+    if (!(value.startsWith('"') && value.endsWith('"')) && value.split('E').length === 2) {
       // forwards compatibility for previousy non-stringified strings that look exponential
       return value;
     } else {
