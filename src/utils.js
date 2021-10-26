@@ -9,7 +9,12 @@ const parse = (value) => {
       // forwards compatibility for previousy non-stringified strings that look exponential
       return value;
     } else {
-      return JSON.parse(value);
+      try {
+        return JSON.parse(value);
+      } catch (e) /* istanbul ignore next */ {
+        // this will handle when the encrypted value was not stringified
+        return value;
+      }
     }
   } else {
     return value;
