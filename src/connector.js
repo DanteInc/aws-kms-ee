@@ -1,8 +1,10 @@
 /* eslint import/no-extraneous-dependencies: ["error", {"devDependencies": true}] */
 import { KMS } from 'aws-sdk';
-import memoizee from 'memoizee';
+import memoryCache from 'memory-cache';
 
 import { debug } from './utils';
+
+const cache = new memoryCache.Cache();
 
 class Connector {
   constructor(
@@ -10,7 +12,7 @@ class Connector {
     region = process.env.AWS_REGION,
     timeout = Number(process.env.KMS_TIMEOUT || process.env.TIMEOUT || 1000),
     connectTimeout = Number(process.env.KMS_CONNECT_TIMEOUT || process.env.CONNECT_TIMEOUT || 1000),
-    maxAge = Number(process.env.DATA_KEY_MAX_AGE) || 10800000, // 3 hours
+    maxAge = Number(process.env.DATA_KEY_MAX_AGE) || undefined, // default to life of lambda function
   ) {
     this.maxAge = maxAge;
     this.masterKeyAlias = masterKeyAlias;
@@ -22,49 +24,36 @@ class Connector {
   }
 
   generateDataKey() {
-    return this._generateDataKey();
-  }
-
-  decryptDataKey(dataKey) {
-    return this._decryptDataKey(dataKey);
-  }
-
-  encryptDataKey(plainText) {
-    return this._encryptDataKey(plainText);
-  }
-
-  _generateDataKey = memoizee(
-    () =>
+    return this.getput('datakey', () =>
       this.kms.generateDataKey({
         KeyId: this.masterKeyAlias,
         KeySpec: 'AES_256',
-      }).promise(),
-    {
-      promise: true,
-      maxAge: this.maxAge,
-    },
-  );
+      }).promise());
+  }
 
-  _decryptDataKey = memoizee(
-    dataKey =>
+  decryptDataKey(dataKey) {
+    return this.getput(dataKey, dk =>
       this.kms.decrypt({
-        CiphertextBlob: Buffer.from(dataKey, 'base64'),
-      }).promise(),
-    {
-      promise: true,
-    },
-  );
+        CiphertextBlob: Buffer.from(dk, 'base64'),
+      }).promise());
+  }
 
-  _encryptDataKey = memoizee(
-    plainText =>
+  encryptDataKey(plainText) {
+    return this.getput(plainText, pt =>
       this.kms.encrypt({
         KeyId: this.masterKeyAlias,
-        Plaintext: plainText,
-      }).promise(),
-    {
-      promise: true,
-    },
-  );
+        Plaintext: pt,
+      }).promise());
+  }
+
+  async getput(data, f) {
+    let k = cache.get(data);
+    if (!k) {
+      k = await f(data);
+      cache.put(data, k, this.maxAge);
+    }
+    return k;
+  }
 }
 
 export default Connector;
