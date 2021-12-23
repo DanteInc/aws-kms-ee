@@ -1,8 +1,11 @@
 /* eslint import/no-extraneous-dependencies: ["error", {"devDependencies": true}] */
-import { KMS } from 'aws-sdk';
+import { config, KMS } from 'aws-sdk';
+import Promise from 'bluebird';
 import memoryCache from 'memory-cache';
 
 import { debug } from './utils';
+
+config.setPromisesDependency(Promise);
 
 const cache = new memoryCache.Cache();
 
@@ -52,7 +55,7 @@ class Connector {
       k = await f(data);
       cache.put(data, k, this.maxAge);
     }
-    return k;
+    return Promise.resolve(k);
   }
 }
 
