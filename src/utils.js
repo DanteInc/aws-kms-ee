@@ -5,7 +5,12 @@ export const debug = require('debug')('kms');
 const parse = (value) => {
   /* istanbul ignore else */
   if (value) {
-    if (!(value.startsWith('"') && value.endsWith('"')) && value.split('E').length === 2) {
+    // DEPRECATED - will remove this natural feature flag in future version
+    if (
+      !(value.startsWith('{') && value.endsWith('}')) && // ignore stringified object
+      !(value.startsWith('"') && value.endsWith('"')) && // ignore properly stringified string
+      value.split('E').length === 2 // without stringification it is impossible to tell a string that looks like an expo number from an actual number
+    ) {
       // forwards compatibility for previousy non-stringified strings that look exponential
       return value;
     } else {
