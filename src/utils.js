@@ -2,7 +2,6 @@ import * as crypto from './crypto';
 
 export const debug = require('debug')('kms');
 
-const isExpNumber = value => !Number.isNaN(Number(value)) && `${value}`.includes('E');
 const parse = (value) => {
   /* istanbul ignore else */
   if (value) {
@@ -10,7 +9,7 @@ const parse = (value) => {
     if (
       !(value.startsWith('{') && value.endsWith('}')) && // ignore stringified object
       !(value.startsWith('"') && value.endsWith('"')) && // ignore properly stringified string
-      isExpNumber(value) // without stringification it is impossible to tell a string that looks like an expo number from an actual number
+      value.split('E').length === 2 // without stringification it is impossible to tell a string that looks like an expo number from an actual number
     ) {
       // forwards compatibility for previousy non-stringified strings that look exponential
       return value;
