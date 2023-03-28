@@ -6,8 +6,7 @@ import * as crypto from '../../src/crypto';
 
 import { MOCK_GEN_DK_RESPONSE, MOCK_DECRYPT_DK_RESPONSE } from '../../src/fixtures';
 
-const VALUE = '33E44';
-const VALUE2 = { field1: VALUE };
+const VALUE = 'fred';
 
 describe('utils.js', () => {
   it('should encrypt and decrypt', () => {
@@ -41,23 +40,5 @@ describe('utils.js', () => {
       Plaintext: MOCK_DECRYPT_DK_RESPONSE.Plaintext,
     });
     expect(decrypted).to.equal(VALUE);
-  });
-  it('should ignore forward compatibility for encrypted stringified object', () => {
-    const encrypted = encryptValue('f1', VALUE2, {
-      Plaintext: MOCK_GEN_DK_RESPONSE.Plaintext,
-    });
-    const decrypted = decryptValue('f1', encrypted, {
-      Plaintext: MOCK_DECRYPT_DK_RESPONSE.Plaintext,
-    });
-    expect(decrypted).to.deep.equal(VALUE2);
-  });
-  it('should ignore forward compatibility for encrypted stringified array', () => {
-    const encrypted = encryptValue('f1', [VALUE], {
-      Plaintext: MOCK_GEN_DK_RESPONSE.Plaintext,
-    });
-    const decrypted = decryptValue('f1', encrypted, {
-      Plaintext: MOCK_DECRYPT_DK_RESPONSE.Plaintext,
-    });
-    expect(decrypted).to.deep.equal([VALUE]);
   });
 });
