@@ -51,4 +51,13 @@ describe('utils.js', () => {
     });
     expect(decrypted).to.deep.equal(VALUE2);
   });
+  it('should ignore forward compatibility for encrypted stringified array', () => {
+    const encrypted = encryptValue('f1', [VALUE], {
+      Plaintext: MOCK_GEN_DK_RESPONSE.Plaintext,
+    });
+    const decrypted = decryptValue('f1', encrypted, {
+      Plaintext: MOCK_DECRYPT_DK_RESPONSE.Plaintext,
+    });
+    expect(decrypted).to.deep.equal([VALUE]);
+  });
 });

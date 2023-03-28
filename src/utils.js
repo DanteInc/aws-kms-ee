@@ -6,8 +6,10 @@ const parse = (value) => {
   /* istanbul ignore else */
   if (value) {
     // DEPRECATED - will remove this natural feature flag in future version
+    // this is only intended to provide limited compatibility for services that are stuck on v.0.8.0 or older
     if (
       !(value.startsWith('{') && value.endsWith('}')) && // ignore stringified object
+      !(value.startsWith('[') && value.endsWith(']')) && // ignore stringified array
       !(value.startsWith('"') && value.endsWith('"')) && // ignore properly stringified string
       value.split('E').length === 2 // without stringification it is impossible to tell a string that looks like an expo number from an actual number
     ) {
