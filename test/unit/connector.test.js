@@ -1,22 +1,26 @@
 import 'mocha';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
+import { mockClient } from 'aws-sdk-client-mock';
+import { DecryptCommand, EncryptCommand, GenerateDataKeyCommand, KMSClient } from '@aws-sdk/client-kms';
 
 import Connector from '../../src/connector';
 import { MOCK_GEN_DK_RESPONSE, MOCK_DECRYPT_DK_RESPONSE, MOCK_ENCRYPT_DK_RESPONSE } from '../../src/fixtures';
 
-const AWS = require('aws-sdk-mock');
-
-AWS.Promise = Promise;
-
 describe('connector.js', () => {
+  let mockKms;
+
+  beforeEach(() => {
+    mockKms = mockClient(KMSClient);
+  });
+
   afterEach(() => {
-    AWS.restore('KMS');
+    mockKms.restore();
   });
 
   it('should generate a data key', async () => {
-    const spy = sinon.spy((params, cb) => cb(null, MOCK_GEN_DK_RESPONSE));
-    AWS.mock('KMS', 'generateDataKey', spy);
+    const spy = sinon.spy(() => MOCK_GEN_DK_RESPONSE);
+    mockKms.on(GenerateDataKeyCommand).callsFake(spy);
 
     const response = await new Connector('alias/aws-kms-ee')
       .generateDataKey();
@@ -29,8 +33,8 @@ describe('connector.js', () => {
   });
 
   it('should generate a cached data key', async () => {
-    const spy = sinon.spy((params, cb) => cb(null, MOCK_GEN_DK_RESPONSE));
-    AWS.mock('KMS', 'generateDataKey', spy);
+    const spy = sinon.spy(() => MOCK_GEN_DK_RESPONSE);
+    mockKms.on(GenerateDataKeyCommand).callsFake(spy);
 
     const response = await new Connector('alias/aws-kms-ee')
       .generateDataKey();
@@ -43,8 +47,8 @@ describe('connector.js', () => {
   });
 
   it('should decrypt a data key', async () => {
-    const spy = sinon.spy((params, cb) => cb(null, MOCK_DECRYPT_DK_RESPONSE));
-    AWS.mock('KMS', 'decrypt', spy);
+    const spy = sinon.spy(() => MOCK_DECRYPT_DK_RESPONSE);
+    mockKms.on(DecryptCommand).callsFake(spy);
 
     const response = await new Connector('alias/aws-kms-ee')
       .decryptDataKey(MOCK_GEN_DK_RESPONSE.CiphertextBlob.toString('base64'));
@@ -56,8 +60,8 @@ describe('connector.js', () => {
   });
 
   it('should encrypt a data key', async () => {
-    const spy = sinon.spy((params, cb) => cb(null, MOCK_ENCRYPT_DK_RESPONSE));
-    AWS.mock('KMS', 'encrypt', spy);
+    const spy = sinon.spy(() => MOCK_ENCRYPT_DK_RESPONSE);
+    mockKms.on(EncryptCommand).callsFake(spy);
 
     const response = await new Connector('alias/aws-kms-ee', 'us-west-2')
       .encryptDataKey(MOCK_GEN_DK_RESPONSE.Plaintext);

@@ -46,7 +46,7 @@ const encryptDataKeyPerRegion = metadata => ({ Plaintext, CiphertextBlob }) =>
     .map(region => new Connector(metadata.masterKeyAlias, region)
       .encryptDataKey(Plaintext)
       .then(resp => ({
-        [region]: resp.CiphertextBlob.toString('base64'),
+        [region]: base64EncodeUint8Array(resp.CiphertextBlob),
       }))
       .catch((err) => {
         logError(err, 1, region);
@@ -55,7 +55,7 @@ const encryptDataKeyPerRegion = metadata => ({ Plaintext, CiphertextBlob }) =>
         };
       }))
     .concat({
-      [process.env.AWS_REGION]: CiphertextBlob.toString('base64'),
+      [process.env.AWS_REGION]: base64EncodeUint8Array(CiphertextBlob),
     }))
     .then(dataKeys => ({
       dataKeys: merge({}, ...dataKeys),
@@ -76,6 +76,8 @@ const decryptDataKey = metadata => new Connector(metadata.masterKeyAlias)
       .then(dataKey => (first(compact(dataKey)) ||
         Promise.reject(new Error('could not decrypt data key from any region'))));
   });
+
+const base64EncodeUint8Array = arr => Buffer.from(arr).toString('base64');
 
 const otherRegions = metadata =>
   (metadata.regions || (metadata.dataKeys && Object.keys(metadata.dataKeys)) || [])
