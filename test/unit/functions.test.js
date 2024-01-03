@@ -146,6 +146,37 @@ describe('functions.js', () => {
       .to.equal(MOCK_ENCRYPT_DK_RESPONSE.CiphertextBlob.toString('base64'));
   });
 
+  it('should encrypt and decrypt for MultiRegion', async () => {
+    sinon.stub(Connector.prototype, 'generateDataKey')
+      .resolves(MOCK_GEN_DK_RESPONSE);
+    sinon.stub(Connector.prototype, 'decryptDataKey')
+      .resolves(MOCK_DECRYPT_DK_RESPONSE);
+    sinon.stub(Connector.prototype, 'encryptDataKey')
+      .resolves(MOCK_ENCRYPT_DK_RESPONSE);
+
+    const encryptOutput = await encryptObject(
+      DOMAIN_OBJECT,
+      {
+        masterKeyAlias: 'alias/aws-kms-ee',
+        regions: ['us-east-1', 'us-west-2'],
+        fields: ['f1'],
+        multiRegion: true,
+      },
+    );
+
+    // console.log(JSON.stringify(encryptOutput, null, 2));
+    expect(encryptOutput.encrypted).to.not.deep.equal(DOMAIN_OBJECT);
+
+    const decryptOutput = await decryptObject(encryptOutput.encrypted, encryptOutput.metadata);
+    // console.log(JSON.stringify(decryptOutput, null, 2));
+    expect(decryptOutput.object).to.deep.equal(DOMAIN_OBJECT);
+    expect(decryptOutput.metadata.fields).to.exist;
+    expect(decryptOutput.metadata.dataKeys['us-east-1'])
+      .to.equal(MOCK_GEN_DK_RESPONSE.CiphertextBlob.toString('base64'));
+    expect(decryptOutput.metadata.dataKeys['us-west-2'])
+      .to.equal(MOCK_GEN_DK_RESPONSE.CiphertextBlob.toString('base64'));
+  });
+
   it('should handle other region unable to encrypt data key', async () => {
     sinon.stub(Connector.prototype, 'generateDataKey')
       .resolves(MOCK_GEN_DK_RESPONSE);
