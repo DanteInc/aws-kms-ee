@@ -1,11 +1,10 @@
 /* eslint import/no-extraneous-dependencies: ["error", {"devDependencies": true}] */
-import { config, KMS } from 'aws-sdk';
 import Promise from 'bluebird';
 import memoryCache from 'memory-cache';
+import { DecryptCommand, EncryptCommand, GenerateDataKeyCommand, KMSClient } from '@aws-sdk/client-kms';
+import { NodeHttpHandler } from '@smithy/node-http-handler';
 
 import { debug } from './utils';
-
-config.setPromisesDependency(Promise);
 
 const cache = new memoryCache.Cache();
 
@@ -19,8 +18,11 @@ class Connector {
   ) {
     this.maxAge = maxAge;
     this.masterKeyAlias = masterKeyAlias;
-    this.kms = new KMS({
-      httpOptions: { timeout, connectTimeout },
+    this.kms = new KMSClient({
+      requestHandler: new NodeHttpHandler({
+        requestTimeout: timeout,
+        connectionTimeout: connectTimeout,
+      }),
       logger: { log: /* istanbul ignore next */ msg => debug(msg) },
       region,
     });
@@ -28,25 +30,25 @@ class Connector {
 
   generateDataKey() {
     return this.getput('datakey', () =>
-      this.kms.generateDataKey({
+      this._sendCommand(new GenerateDataKeyCommand({
         KeyId: this.masterKeyAlias,
         KeySpec: 'AES_256',
-      }).promise());
+      })));
   }
 
   decryptDataKey(dataKey) {
     return this.getput(dataKey, dk =>
-      this.kms.decrypt({
+      this._sendCommand(new DecryptCommand({
         CiphertextBlob: Buffer.from(dk, 'base64'),
-      }).promise());
+      })));
   }
 
   encryptDataKey(plainText) {
     return this.getput(plainText, pt =>
-      this.kms.encrypt({
+      this._sendCommand(new EncryptCommand({
         KeyId: this.masterKeyAlias,
         Plaintext: pt,
-      }).promise());
+      })));
   }
 
   async getput(data, f) {
@@ -56,6 +58,11 @@ class Connector {
       cache.put(data, k, this.maxAge);
     }
     return Promise.resolve(k);
+  }
+
+  _sendCommand(command) {
+    // Wrap in bluebird promise for things like tap and tapCatch downstream.
+    return Promise.resolve(this.kms.send(command));
   }
 }
 
