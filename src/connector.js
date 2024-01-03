@@ -6,7 +6,7 @@ import { NodeHttpHandler } from '@smithy/node-http-handler';
 
 import { debug } from './utils';
 
-const cache = new memoryCache.Cache();
+export const cache = new memoryCache.Cache();
 
 class Connector {
   constructor(

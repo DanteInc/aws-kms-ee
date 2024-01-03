@@ -3,7 +3,7 @@ import { expect } from 'chai';
 import * as sinon from 'sinon';
 
 import { encryptObject, decryptObject } from '../../src/functions';
-import Connector from '../../src/connector';
+import Connector, { cache } from '../../src/connector';
 
 import { MOCK_GEN_DK_RESPONSE, MOCK_DECRYPT_DK_RESPONSE, MOCK_ENCRYPT_DK_RESPONSE } from '../../src/fixtures';
 import { DOMAIN_OBJECT } from '../fixtures';
@@ -15,6 +15,7 @@ describe('functions.js', () => {
   });
 
   afterEach(() => {
+    cache.clear();
     sinon.restore();
   });
 
@@ -151,8 +152,6 @@ describe('functions.js', () => {
       .resolves(MOCK_GEN_DK_RESPONSE);
     sinon.stub(Connector.prototype, 'decryptDataKey')
       .resolves(MOCK_DECRYPT_DK_RESPONSE);
-    sinon.stub(Connector.prototype, 'encryptDataKey')
-      .resolves(MOCK_ENCRYPT_DK_RESPONSE);
 
     const encryptOutput = await encryptObject(
       DOMAIN_OBJECT,
