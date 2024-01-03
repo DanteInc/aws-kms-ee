@@ -7,10 +7,12 @@ import Connector from './connector';
 import { encryptValue, decryptValue, logError } from './utils';
 
 export const encryptObject = (object, {
-  masterKeyAlias, fields, dataKeys, regions, AES,
+  masterKeyAlias, fields, dataKeys, regions, AES, multiRegion = false,
 }) => new Connector(masterKeyAlias)
   .generateDataKey()
-  .then(encryptDataKeyPerRegion({ masterKeyAlias, dataKeys, regions }))
+  .then(encryptDataKeyPerRegion({
+    masterKeyAlias, dataKeys, regions, multiRegion,
+  }))
   .then(dataKey =>
     ({
       encrypted: cloneDeepWith(object, (value, key) => {
@@ -41,26 +43,37 @@ export const decryptObject = (object, metadata) =>
         metadata,
       }));
 
-const encryptDataKeyPerRegion = metadata => ({ Plaintext, CiphertextBlob }) =>
-  Promise.all(otherRegions(metadata)
-    .map(region => new Connector(metadata.masterKeyAlias, region)
-      .encryptDataKey(Plaintext)
-      .then(resp => ({
-        [region]: base64EncodeUint8Array(resp.CiphertextBlob),
+const encryptDataKeyPerRegion = metadata => ({ Plaintext, CiphertextBlob }) => {
+  const regions = otherRegions(metadata);
+  const dataKey = base64EncodeUint8Array(CiphertextBlob);
+
+  return Promise.all((
+    metadata.multiRegion ?
+      regions.map(region => ({
+        [region]: dataKey,
       }))
-      .catch((err) => {
-        logError(err, 1, region);
-        return {
-          [region]: undefined,
-        };
-      }))
+      :
+      regions
+        .map(region => new Connector(metadata.masterKeyAlias, region)
+          .encryptDataKey(Plaintext)
+          .then(resp => ({
+            [region]: base64EncodeUint8Array(resp.CiphertextBlob),
+          }))
+          .catch((err) => {
+            logError(err, 1, region);
+            return {
+              [region]: undefined,
+            };
+          }))
+  )
     .concat({
-      [process.env.AWS_REGION]: base64EncodeUint8Array(CiphertextBlob),
+      [process.env.AWS_REGION]: dataKey,
     }))
     .then(dataKeys => ({
       dataKeys: merge({}, ...dataKeys),
       Plaintext,
     }));
+};
 
 const decryptDataKey = metadata => new Connector(metadata.masterKeyAlias)
   .decryptDataKey(metadata.dataKeys[process.env.AWS_REGION])
