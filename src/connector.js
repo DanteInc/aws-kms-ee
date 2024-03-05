@@ -3,8 +3,7 @@ import Promise from 'bluebird';
 import memoryCache from 'memory-cache';
 import { DecryptCommand, EncryptCommand, GenerateDataKeyCommand, KMSClient } from '@aws-sdk/client-kms';
 import { NodeHttpHandler } from '@smithy/node-http-handler';
-
-import { debug } from './utils';
+import { getClientLogger } from './utils';
 
 const cache = new memoryCache.Cache();
 
@@ -23,7 +22,7 @@ class Connector {
         requestTimeout: timeout,
         connectionTimeout: connectTimeout,
       }),
-      logger: { log: /* istanbul ignore next */ msg => debug(msg) },
+      logger: getClientLogger(),
       region,
     });
   }
