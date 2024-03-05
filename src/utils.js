@@ -1,3 +1,4 @@
+import { inspect } from 'util';
 import * as crypto from './crypto';
 
 export const debug = require('debug')('kms');
@@ -88,4 +89,15 @@ export const logError = (err, forEncrypt, region) => {
   const timestamp = Math.floor(Date.now() / 1000); // unix format
 
   return `MONITORING|${timestamp}|1|count|kms.error.count|#${flattenedTags}`;
+};
+
+export const getClientLogger = (dbg = debug) => {
+  const normalize = msg => (typeof msg === 'string' ? msg : inspect(msg, { depth: 3 })).replace(/\n/g, '\r');
+  const log = (...content) => dbg(...(content.map(normalize)));
+  return {
+    debug: () => {},
+    info: log,
+    warn: log,
+    error: log,
+  };
 };
