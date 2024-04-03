@@ -1,5 +1,5 @@
 export const MOCK_GEN_DK_RESPONSE = {
-  CiphertextBlob: Buffer.from([
+  CiphertextBlob: new Uint8Array([
     1,
     2,
     3,
@@ -185,7 +185,7 @@ export const MOCK_GEN_DK_RESPONSE = {
     170,
     128,
   ]),
-  Plaintext: Buffer.from([
+  Plaintext: new Uint8Array([
     221,
     148,
     121,
@@ -224,7 +224,7 @@ export const MOCK_GEN_DK_RESPONSE = {
 
 export const MOCK_DECRYPT_DK_RESPONSE = {
   KeyId: 'arn:aws:kms:us-east-1:123456789012:key/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
-  Plaintext: Buffer.from([
+  Plaintext: new Uint8Array([
     221,
     148,
     121,
@@ -261,7 +261,7 @@ export const MOCK_DECRYPT_DK_RESPONSE = {
 };
 
 export const MOCK_ENCRYPT_DK_RESPONSE = {
-  CiphertextBlob: Buffer.from([
+  CiphertextBlob: new Uint8Array([
     1,
     2,
     2,
