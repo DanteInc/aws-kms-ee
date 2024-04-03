@@ -42,6 +42,7 @@ class Connector {
       }))
         .then(response => ({
           ...response,
+          // maintaining backwards compatibility with sdk v2
           Plaintext: Buffer.from(response.Plaintext),
         })));
   }
