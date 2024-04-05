@@ -32,7 +32,13 @@ class Connector {
       this._sendCommand(new GenerateDataKeyCommand({
         KeyId: this.masterKeyAlias,
         KeySpec: 'AES_256',
-      })));
+      }))
+        .then(response => ({
+          ...response,
+          // maintaining backwards compatibility with sdk v2
+          CiphertextBlob: Buffer.from(response.CiphertextBlob),
+          Plaintext: Buffer.from(response.Plaintext),
+        })));
   }
 
   decryptDataKey(dataKey) {
@@ -52,7 +58,12 @@ class Connector {
       this._sendCommand(new EncryptCommand({
         KeyId: this.masterKeyAlias,
         Plaintext: pt,
-      })));
+      }))
+        .then(response => ({
+          ...response,
+          // maintaining backwards compatibility with sdk v2
+          CiphertextBlob: Buffer.from(response.CiphertextBlob),
+        })));
   }
 
   async getput(data, f) {
