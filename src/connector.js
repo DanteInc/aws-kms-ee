@@ -1,6 +1,7 @@
 /* eslint import/no-extraneous-dependencies: ["error", {"devDependencies": true}] */
 import Promise from 'bluebird';
 import memoryCache from 'memory-cache';
+import { Agent } from 'https';
 import { DecryptCommand, EncryptCommand, GenerateDataKeyCommand, KMSClient } from '@aws-sdk/client-kms';
 import { NodeHttpHandler } from '@smithy/node-http-handler';
 import { getClientLogger } from './utils';
@@ -14,6 +15,7 @@ class Connector {
     timeout = Number(process.env.KMS_TIMEOUT || process.env.TIMEOUT || 1000),
     connectTimeout = Number(process.env.KMS_CONNECT_TIMEOUT || process.env.CONNECT_TIMEOUT || 1000),
     maxAge = Number(process.env.DATA_KEY_MAX_AGE) || undefined, // default to life of lambda function
+    maxSockets = 50,
   ) {
     this.maxAge = maxAge;
     this.masterKeyAlias = masterKeyAlias;
@@ -21,6 +23,9 @@ class Connector {
       requestHandler: new NodeHttpHandler({
         requestTimeout: timeout,
         connectionTimeout: connectTimeout,
+        httpsAgent: new Agent({
+          maxSockets,
+        }),
       }),
       logger: getClientLogger(),
       region,
