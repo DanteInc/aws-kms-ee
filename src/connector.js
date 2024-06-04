@@ -15,7 +15,7 @@ class Connector {
     timeout = Number(process.env.KMS_TIMEOUT || process.env.TIMEOUT || 1000),
     connectTimeout = Number(process.env.KMS_CONNECT_TIMEOUT || process.env.CONNECT_TIMEOUT || 1000),
     maxAge = Number(process.env.DATA_KEY_MAX_AGE) || undefined, // default to life of lambda function
-    maxSockets = 50,
+    maxSockets = Number(process.env.MAX_SOCKETS) || 50,
   ) {
     this.maxAge = maxAge;
     this.masterKeyAlias = masterKeyAlias;
