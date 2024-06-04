@@ -1,6 +1,6 @@
 {
   "name": "aws-kms-ee",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "AWS KMS Envelope Encryption",
   "main": "./lib/index.js",
   "files": [
