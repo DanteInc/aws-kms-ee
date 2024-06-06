@@ -19,17 +19,24 @@ class Connector {
   ) {
     this.maxAge = maxAge;
     this.masterKeyAlias = masterKeyAlias;
-    this.kms = new KMSClient({
-      requestHandler: new NodeHttpHandler({
-        requestTimeout: timeout,
-        connectionTimeout: connectTimeout,
-        httpsAgent: new Agent({
-          maxSockets,
+    this.kms = Connector.getKmsClient(timeout, connectTimeout, maxSockets, region);
+  }
+
+  static getKmsClient(timeout, connectTimeout, maxSockets, region) {
+    if (!this.kmsClient) {
+      this.kmsClient = new KMSClient({
+        requestHandler: new NodeHttpHandler({
+          requestTimeout: timeout,
+          connectionTimeout: connectTimeout,
+          httpsAgent: new Agent({
+            maxSockets,
+          }),
         }),
-      }),
-      logger: getClientLogger(),
-      region,
-    });
+        logger: getClientLogger(),
+        region,
+      });
+    }
+    return this.kmsClient;
   }
 
   generateDataKey() {
