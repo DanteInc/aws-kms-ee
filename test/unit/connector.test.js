@@ -22,7 +22,7 @@ describe('connector.js', () => {
     const spy = sinon.spy(() => MOCK_GEN_DK_RESPONSE);
     mockKms.on(GenerateDataKeyCommand).callsFake(spy);
 
-    const response = await new Connector('alias/aws-kms-ee')
+    const response = await new Connector('alias/aws-kms-ee', 'us-west-2')
       .generateDataKey();
 
     expect(spy).to.have.been.calledWith({
@@ -36,7 +36,7 @@ describe('connector.js', () => {
     const spy = sinon.spy(() => MOCK_GEN_DK_RESPONSE);
     mockKms.on(GenerateDataKeyCommand).callsFake(spy);
 
-    const response = await new Connector('alias/aws-kms-ee')
+    const response = await new Connector('alias/aws-kms-ee', 'us-west-2')
       .generateDataKey();
 
     expect(spy).to.have.not.been.calledWith({
@@ -50,7 +50,7 @@ describe('connector.js', () => {
     const spy = sinon.spy(() => MOCK_DECRYPT_DK_RESPONSE);
     mockKms.on(DecryptCommand).callsFake(spy);
 
-    const response = await new Connector('alias/aws-kms-ee')
+    const response = await new Connector('alias/aws-kms-ee', 'us-west-2')
       .decryptDataKey(MOCK_GEN_DK_RESPONSE.CiphertextBlob.toString('base64'));
 
     expect(spy).to.have.been.calledWith({

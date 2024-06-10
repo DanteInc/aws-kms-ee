@@ -22,9 +22,10 @@ class Connector {
     this.kms = Connector.getKmsClient(timeout, connectTimeout, maxSockets, region);
   }
 
+  static kmsClient = [];
   static getKmsClient(timeout, connectTimeout, maxSockets, region) {
-    if (!this.kmsClient) {
-      this.kmsClient = new KMSClient({
+    if (!this.kmsClient[region]) {
+      this.kmsClient[region] = new KMSClient({
         requestHandler: new NodeHttpHandler({
           requestTimeout: timeout,
           connectionTimeout: connectTimeout,
@@ -36,7 +37,7 @@ class Connector {
         region,
       });
     }
-    return this.kmsClient;
+    return this.kmsClient[region];
   }
 
   generateDataKey() {
