@@ -199,4 +199,142 @@ describe('functions.js', () => {
       console.error('EXPECTED: ', e.message);
     }
   });
+
+  it('should not crash when metadata.fields is missing', async () => {
+    sinon.stub(Connector.prototype, 'generateDataKey')
+      .resolves(MOCK_GEN_DK_RESPONSE);
+    sinon.stub(Connector.prototype, 'decryptDataKey')
+      .resolves(MOCK_DECRYPT_DK_RESPONSE);
+
+    const obj = {
+      id: '0',
+      type: 'thing-created',
+      partitionKey: '1',
+      timestamp: 1572832690000,
+      tags: {
+        region: 'us-west-2',
+      },
+      raw: {
+        new: {
+          pk: '1',
+          sk: 'thing',
+          discriminator: 'thing',
+          name: 'name',
+          description: 'description',
+          status: 's1',
+        },
+      },
+      eem: {
+        dataKeys: {
+          'us-west-2': 'AQIDAHg5lIgUTrMBJZSEOmrJ/GqVqgcTMUj+cIw/EBA4XAX5TgG+mTJFoKz0VU0tljNQLcGwAAAAfjB8BgkqhkiG9w0BBwagbzBtAgEAMGgGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMWhuPTg3e+GjnWx6rAgEQgDsRc7csVqQxagsvXLPx/hAePtadw2GziixRC/UT3FpYU58/NHC8PvFdJDVQ3LkK8XYGLeowpHlC9CaqgA==',
+        },
+        masterKeyAlias: 'alias/aws-kms-ee',
+      },
+    };
+
+    const result = await decryptObject(obj, obj.eem);
+    expect(result.object).to.deep.equal(obj);
+  });
+
+  it('should not crash when metadata.masterKeyAlias is missing', async () => {
+    sinon.stub(Connector.prototype, 'generateDataKey')
+      .resolves(MOCK_GEN_DK_RESPONSE);
+    sinon.stub(Connector.prototype, 'decryptDataKey')
+      .resolves(MOCK_DECRYPT_DK_RESPONSE);
+
+    const obj = {
+      id: '0',
+      type: 'thing-created',
+      partitionKey: '1',
+      timestamp: 1572832690000,
+      tags: {
+        region: 'us-west-2',
+      },
+      raw: {
+        new: {
+          pk: '1',
+          sk: 'thing',
+          discriminator: 'thing',
+          name: 'name',
+          description: 'description',
+          status: 's1',
+        },
+      },
+      eem: {
+        dataKeys: {
+          'us-west-2': 'AQIDAHg5lIgUTrMBJZSEOmrJ/GqVqgcTMUj+cIw/EBA4XAX5TgG+mTJFoKz0VU0tljNQLcGwAAAAfjB8BgkqhkiG9w0BBwagbzBtAgEAMGgGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMWhuPTg3e+GjnWx6rAgEQgDsRc7csVqQxagsvXLPx/hAePtadw2GziixRC/UT3FpYU58/NHC8PvFdJDVQ3LkK8XYGLeowpHlC9CaqgA==',
+        },
+        fields: [],
+      },
+    };
+
+    const result = await decryptObject(obj, obj.eem);
+    expect(result.object).to.deep.equal(obj);
+  });
+
+  it('should not crash when metadata.dataKeys is missing', async () => {
+    sinon.stub(Connector.prototype, 'generateDataKey')
+      .resolves(MOCK_GEN_DK_RESPONSE);
+    sinon.stub(Connector.prototype, 'decryptDataKey')
+      .resolves(MOCK_DECRYPT_DK_RESPONSE);
+
+    const obj = {
+      id: '0',
+      type: 'thing-created',
+      partitionKey: '1',
+      timestamp: 1572832690000,
+      tags: {
+        region: 'us-west-2',
+      },
+      raw: {
+        new: {
+          pk: '1',
+          sk: 'thing',
+          discriminator: 'thing',
+          name: 'name',
+          description: 'description',
+          status: 's1',
+        },
+      },
+      eem: {
+        masterKeyAlias: 'alias/aws-kms-ee',
+        fields: [],
+      },
+    };
+
+    const result = await decryptObject(obj, obj.eem);
+    expect(result.object).to.deep.equal(obj);
+  });
+
+  it('should not crash when metadata is empty', async () => {
+    sinon.stub(Connector.prototype, 'generateDataKey')
+      .resolves(MOCK_GEN_DK_RESPONSE);
+    sinon.stub(Connector.prototype, 'decryptDataKey')
+      .resolves(MOCK_DECRYPT_DK_RESPONSE);
+
+    const obj = {
+      id: '0',
+      type: 'thing-created',
+      partitionKey: '1',
+      timestamp: 1572832690000,
+      tags: {
+        region: 'us-west-2',
+      },
+      raw: {
+        new: {
+          pk: '1',
+          sk: 'thing',
+          discriminator: 'thing',
+          name: 'name',
+          description: 'description',
+          status: 's1',
+        },
+      },
+      eem: {
+      },
+    };
+
+    const result = await decryptObject(obj, obj.eem);
+    expect(result.object).to.deep.equal(obj);
+  });
 });
