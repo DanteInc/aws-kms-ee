@@ -62,6 +62,41 @@ describe('utils.js', () => {
     expect(decrypted).to.deep.equal([VALUE]);
   });
 
+  describe('aes feature flag', () => {
+    afterEach(Sinon.restore);
+
+    it('should handle 0', () => {
+      const encrypted = crypto.encrypt(VALUE, undefined, 0).toString();
+      const decrypted = crypto.decrypt(encrypted, undefined, 0);
+      expect(decrypted).to.equal(VALUE);
+    });
+    it('should handle empty string', () => {
+      const encrypted = crypto.encrypt(VALUE, undefined, '').toString();
+      const decrypted = crypto.decrypt(encrypted, undefined, '');
+      expect(decrypted).to.equal(VALUE);
+    });
+    it('should handle "false"', () => {
+      const encrypted = crypto.encrypt(VALUE, undefined, 'false').toString();
+      const decrypted = crypto.decrypt(encrypted, undefined, 'false');
+      expect(decrypted).to.equal(VALUE);
+    });
+    it('should handle false', () => {
+      const encrypted = crypto.encrypt(VALUE, undefined, false).toString();
+      const decrypted = crypto.decrypt(encrypted, undefined, false);
+      expect(decrypted).to.equal(VALUE);
+    });
+    it('should handle null', () => {
+      const encrypted = crypto.encrypt(VALUE, undefined, null).toString();
+      const decrypted = crypto.decrypt(encrypted, undefined, null);
+      expect(decrypted).to.equal(VALUE);
+    });
+    it('should handle undefined', () => {
+      const encrypted = crypto.encrypt(VALUE, undefined, undefined).toString();
+      const decrypted = crypto.decrypt(encrypted, undefined, undefined);
+      expect(decrypted).to.equal(VALUE);
+    });
+  });
+
   describe('getClientLogger()', () => {
     afterEach(Sinon.restore);
 
