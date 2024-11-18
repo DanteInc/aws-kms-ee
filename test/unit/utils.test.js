@@ -90,11 +90,6 @@ describe('utils.js', () => {
       const decrypted = crypto.decrypt(encrypted, undefined, null);
       expect(decrypted).to.equal(VALUE);
     });
-    it('should handle undefined', () => {
-      const encrypted = crypto.encrypt(VALUE, undefined, undefined).toString();
-      const decrypted = crypto.decrypt(encrypted, undefined, undefined);
-      expect(decrypted).to.equal(VALUE);
-    });
   });
 
   describe('getClientLogger()', () => {

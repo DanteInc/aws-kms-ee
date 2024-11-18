@@ -2,7 +2,7 @@ const CryptoJS = require('crypto-js');
 
 // base64 is just for ease of unit testing
 
-const isTrue = v => v !== false && v !== 'false' && v !== 0 && v !== '' && v !== null && v !== undefined;
+const isTrue = v => v !== false && v !== 'false' && v !== 0 && v !== '' && v !== null;
 
 export const encrypt = (v, k, AES) => (isTrue(AES) ?
   CryptoJS.AES.encrypt(v, k) :
