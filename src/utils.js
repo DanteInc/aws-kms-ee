@@ -46,7 +46,7 @@ export const encryptValue = (key, value, dek, AES = true) => {
 
 export const decryptValue = (key, value, dek, AES = true) => {
   /* istanbul ignore if */
-  if (value === null) {
+  if (value === null || value === undefined) {
     return value;
   } else {
     let decryptedValue;
