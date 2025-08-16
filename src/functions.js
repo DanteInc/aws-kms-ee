@@ -32,7 +32,7 @@ export const decryptObject = (object, metadata) =>
     .then(dataKey =>
       ({
         object: cloneDeepWith(object, (value, key) => {
-          if (metadata.fields.includes(key)) {
+          if (metadata.fields && metadata.fields.includes(key)) {
             return decryptValue(key, value, dataKey, metadata.AES);
           } else {
             return undefined;
@@ -63,7 +63,7 @@ const encryptDataKeyPerRegion = metadata => ({ Plaintext, CiphertextBlob }) =>
     }));
 
 const decryptDataKey = metadata => new Connector(metadata.masterKeyAlias)
-  .decryptDataKey(metadata.dataKeys[process.env.AWS_REGION])
+  .decryptDataKey(metadata.dataKeys && metadata.dataKeys[process.env.AWS_REGION])
   .catch((e1) => {
     logError(e1, 0, process.env.AWS_REGION);
     return Promise.all(otherRegions(metadata)
