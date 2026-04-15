@@ -66,6 +66,23 @@ class Connector {
         })));
   }
 
+  generateDataKeyWithCtx(ctx) {
+    return this.getput(`datakey${JSON.stringify(ctx)}`, () =>
+      this._sendCommand(new GenerateDataKeyCommand({
+        KeyId: this.masterKeyAlias,
+        KeySpec: 'AES_256',
+        EncryptionContext: ctx,
+      })));
+  }
+
+  decryptDataKeyWithCtx(dataKey, ctx) {
+    return this.getput(`${dataKey}${JSON.stringify(ctx)}`, dk =>
+      this._sendCommand(new DecryptCommand({
+        CiphertextBlob: Buffer.from(dk, 'base64'),
+        EncryptionContext: ctx,
+      })));
+  }
+
   encryptDataKey(plainText) {
     return this.getput(plainText, pt =>
       this._sendCommand(new EncryptCommand({
